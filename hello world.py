@@ -9,3 +9,5 @@ L = [1, 2, 3]
 for v in L:
   print(v)
 
+team = 0
+while team != disqualified
