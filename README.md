@@ -38,4 +38,5 @@ This project is designed to facilitate the management and dispatch of aid suppli
 ## References
 
 [1] OpenAI, _ChatGPT(GPT-5)_, OpenAI, San Francisco, CA, USA. Available: https://chat.openai.com
+
 [2] Microsoft, "Copilot", Microsoft, 2025. [Online]. Available: https://copilot.microsoft.com
