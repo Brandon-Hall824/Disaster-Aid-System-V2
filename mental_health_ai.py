@@ -17,6 +17,12 @@ try:
 except Exception:
     OpenAI = None
 
+# Try to import the legacy `openai` module (older SDKs)
+try:
+    import openai as _legacy_openai
+except Exception:
+    _legacy_openai = None
+
 try:
     from dateutil import parser as date_parser
 except Exception:
@@ -62,34 +68,43 @@ def set_api_key(key: str, persist_env: bool = False, write_dotenv: bool = False)
         except Exception:
             pass
     return _init_client_from_key(key)
-
-<<<<<<< HEAD
 def is_configured() -> bool:
     return client is not None
-=======
-ensure_dependencies()
 
-# --- IMPORT AFTER INSTALLATION ---
-import openai
-from dateutil import parser as date_parser
+# Determine which SDK is available: NEW_SDK uses `from openai import OpenAI`,
+# legacy SDK uses the `openai` module where api_key is set on the module.
+NEW_SDK = OpenAI is not None
+LEGACY_OPENAI = _legacy_openai is not None
 
-# --- DETECT OPENAI SDK VERSION ---
-try:
-    from openai import OpenAI
-    NEW_SDK = True
-except ImportError:
-    NEW_SDK = False
+def _init_client_from_key(key: str):
+    """Initialize a client for either the new OpenAI SDK or the legacy module.
 
-# --- PROMPT FOR API KEY ---
-api_key = input("Please enter your OpenAI API key: ").strip()
-if not api_key:
-    raise ValueError("⚠️ You must provide a valid API key to continue.")
+    Returns True on success, False otherwise.
+    """
+    global client
+    # New SDK (OpenAI class)
+    if NEW_SDK:
+        try:
+            client = OpenAI(api_key=key)
+            return True
+        except Exception:
+            client = None
+            return False
 
-if NEW_SDK:
-    client = OpenAI(api_key=api_key)
-else:
-    openai.api_key = api_key
->>>>>>> 2868a3086651f8c11d46f1a13a5370213f47fa49
+    # Legacy SDK (openai module)
+    if LEGACY_OPENAI:
+        try:
+            # set api key on module and treat module as client placeholder
+            _legacy_openai.api_key = key
+            client = _legacy_openai
+            return True
+        except Exception:
+            client = None
+            return False
+
+    # No supported SDK present
+    client = None
+    return False
 
 # --- CRISIS MESSAGE ---
 CRISIS_RESPONSE = (
@@ -222,7 +237,7 @@ def get_chat_completion(system_prompt: str, user_input: str):
         )
         return resp.choices[0].message.content.strip()
     else:
-        resp = openai.ChatCompletion.create(
+        resp = _legacy_openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},

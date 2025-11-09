@@ -407,7 +407,8 @@ def main():
                         continue
                     try:
                         # Automatically set session env var and write a local .env (gitignored)
-                        ok = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=True)
+                        # Set API key for this session only (do NOT write to disk)
+                        ok = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=False)
                         if ok:
                             print("Mental health AI configured successfully.")
                             configured = True
@@ -420,7 +421,8 @@ def main():
                                     subprocess.check_call([sys.executable, "-m", "pip", "install", "openai"]) 
                                     # Reload the mental_health_ai module so it picks up the newly installed package
                                     importlib.reload(mental_health_ai)
-                                    ok2 = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=True)
+                                    # Retry initialization but do NOT persist the key to disk
+                                    ok2 = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=False)
                                     if ok2:
                                         print("Installed OpenAI and configured mental health AI successfully.")
                                         configured = True
