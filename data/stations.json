@@ -1,5 +1,17 @@
 {
   "stations": [
-    "McMaster"
-  ]
+    "McMaster",
+    "Station A",
+    "Station B"
+  ],
+  "locations": {
+    "Station A": [
+      10.0,
+      10.0
+    ],
+    "Station B": [
+      20.0,
+      20.0
+    ]
+  }
 }

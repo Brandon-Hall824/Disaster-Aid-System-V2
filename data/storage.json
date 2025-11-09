@@ -27,12 +27,20 @@
       "disaster_type": "huricane",
       "details": "lots of wind! | location_resolved: 34, Bristow Creek Drive, Elmira, Woolwich, Region of Waterloo, Ontario, N3B 0B6, Canada | lat:43.5997826 lon:-80.5706433",
       "timestamp": "2025-11-09T19:46:46.007142Z"
+    },
+    {
+      "name": "Br",
+      "disaster_type": "mental_support",
+      "details": "user: help please | response: I'm here for you. It sounds like you might be going through a tough time. Would you like to talk about what's on your mind?",
+      "timestamp": "2025-11-09T23:08:10.154387Z"
     }
   ],
   "requesters": [
     "jack'",
     "Brandon",
     "Jamie",
-    "jack"
+    "jack",
+    "Brandon& C:/Users/brand/AppData/Local/Programs/Python/Python313/python.exe c:/Users/brand/OneDrive/Documents/GitHub/exampler/main.py",
+    "Br"
   ]
 }

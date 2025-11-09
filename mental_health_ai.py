@@ -4,31 +4,67 @@ import json
 import re
 from datetime import datetime, timezone
 
-# --- AUTO-INSTALL DEPENDENCIES ---
-def ensure_dependencies():
-    """Automatically installs required dependencies if missing."""
-    import importlib
-    required_packages = ["openai", "python-dateutil"]
-    for package in required_packages:
+# Load optional .env for local keys (python-dotenv optional)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
+# Import optional dependencies
+try:
+    from openai import OpenAI
+except Exception:
+    OpenAI = None
+
+try:
+    from dateutil import parser as date_parser
+except Exception:
+    # minimal fallback for date parsing
+    date_parser = None
+
+# Read API key from environment if present
+api_key = os.environ.get("OPENAI_API_KEY")
+
+# OpenAI client placeholder
+client = None
+
+def _init_client_from_key(key: str):
+    global client
+    if OpenAI is None:
+        return False
+    try:
+        client = OpenAI(api_key=key)
+        return True
+    except Exception:
+        client = None
+        return False
+
+def set_api_key(key: str, persist_env: bool = False, write_dotenv: bool = False) -> bool:
+    """Set the API key at runtime and (optionally) persist it.
+
+    - key: API key string
+    - persist_env: if True, set os.environ['OPENAI_API_KEY'] for current user session
+    - write_dotenv: if True, write a local .env file with OPENAI_API_KEY (will be gitignored)
+
+    Returns True if the client was successfully initialized.
+    """
+    global api_key, client
+    if not key:
+        return False
+    api_key = key
+    if persist_env:
+        os.environ['OPENAI_API_KEY'] = key
+    if write_dotenv:
         try:
-            importlib.import_module(package)
-        except ImportError:
-            print(f"📦 Installing missing package: {package}")
-            import subprocess
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            with open('.env', 'w', encoding='utf-8') as f:
+                f.write(f'OPENAI_API_KEY={key}\n')
+        except Exception:
+            pass
+    return _init_client_from_key(key)
 
-ensure_dependencies()
-
-# --- IMPORT AFTER INSTALLATION ---
-from openai import OpenAI
-from dateutil import parser as date_parser
-
-# --- API CLIENT SETUP (PROMPT FOR API KEY) ---
-api_key = input("Please enter your OpenAI API key: ").strip()
-if not api_key:
-    raise ValueError("⚠️ You must provide a valid API key to continue.")
-
-client = OpenAI(api_key=api_key)
+def is_configured() -> bool:
+    return client is not None
 
 # --- CRISIS MESSAGE ---
 CRISIS_RESPONSE = (
@@ -205,7 +241,10 @@ def update_memory_with_gpt(user_input: str) -> str:
         return reply_text
 
     except Exception as e:
-        print("⚠️ General Error:", e)
+        # Provide a more actionable error message for debugging while keeping a gentle fallback for users.
+        err_type = type(e).__name__
+        print(f"⚠️ Mental health AI error ({err_type}): {e}")
+        print("Hint: verify the 'openai' package is installed and that OPENAI_API_KEY is correctly set.")
         return "I'm here to listen. Can you tell me more about what's going on?"
 
 # --- MAIN LOOP ---

@@ -13,8 +13,15 @@ def main():
     from trucks import Truck
     from help_stations import HelpStation
     from report_utils import geocode
+    # mental health module (optional)
+    try:
+        import mental_health_ai
+    except Exception:
+        mental_health_ai = None
     from typing import List, Dict, Tuple, Optional
     import re
+    import subprocess
+    import importlib
 
     print("Welcome to the Aid Dispatch System")
 
@@ -283,7 +290,7 @@ def main():
         # For non-government users: do not ask for latitude/longitude.
         # Always attempt to dispatch a truck when supplies are available.
         while True:
-            action = input("Enter 'request' to request aid, 'exit' to quit, or 'stations' to list stations: ").strip().lower()
+            action = input("Enter 'request' to request aid, 'mental' for mental health support, 'stations' to list stations, or 'exit' to quit: ").strip().lower()
             if action == 'request':
                 # Show available supplies
                 print("\nAvailable supplies:")
@@ -375,6 +382,92 @@ def main():
                         print(f" - {station}")
                 else:
                     print("No help stations registered.")
+
+            elif action == 'mental':
+                if mental_health_ai is None:
+                    print("Mental health support is unavailable: missing module or dependencies.")
+                    print("Run the setup script or install requirements to enable it.")
+                    continue
+
+                # If not configured, prompt user to provide API key
+                try:
+                    configured = False
+                    if hasattr(mental_health_ai, 'is_configured'):
+                        configured = mental_health_ai.is_configured()
+                    else:
+                        configured = getattr(mental_health_ai, 'client', None) is not None
+                except Exception:
+                    configured = False
+
+                if not configured:
+                    # Prompt user for API key once, then automatically persist to local .env
+                    key = input("Mental health AI is not configured. Enter your OpenAI API key (or leave blank to cancel): ").strip()
+                    if not key:
+                        print("No key entered — returning to menu.")
+                        continue
+                    try:
+                        # Automatically set session env var and write a local .env (gitignored)
+                        ok = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=True)
+                        if ok:
+                            print("Mental health AI configured successfully.")
+                            configured = True
+                        else:
+                            # If OpenAI SDK was missing in the environment, attempt to install it automatically and retry once.
+                            openai_present = getattr(mental_health_ai, 'OpenAI', None) is not None
+                            if not openai_present:
+                                print("OpenAI package not detected. Attempting to install 'openai' now (this may take a minute)...")
+                                try:
+                                    subprocess.check_call([sys.executable, "-m", "pip", "install", "openai"]) 
+                                    # Reload the mental_health_ai module so it picks up the newly installed package
+                                    importlib.reload(mental_health_ai)
+                                    ok2 = mental_health_ai.set_api_key(key, persist_env=True, write_dotenv=True)
+                                    if ok2:
+                                        print("Installed OpenAI and configured mental health AI successfully.")
+                                        configured = True
+                                    else:
+                                        print("Installed 'openai' but failed to initialize client. Check API key and network access.")
+                                        continue
+                                except Exception as ie:
+                                    print("Automatic installation of 'openai' failed:", repr(ie))
+                                    print("Please install requirements manually: python -m pip install -r requirements.txt")
+                                    continue
+                            else:
+                                print("Failed to initialize AI client. Check the key, ensure 'openai' package is installed, and verify network access.")
+                                continue
+                    except Exception as e:
+                        print("Error configuring mental health AI:", repr(e))
+                        print("Ensure the 'openai' package is installed and your API key is valid.")
+                        continue
+
+                # Present mental health submenu
+                while True:
+                    print("\nMental Health Support")
+                    print("1. Quick message (one-off)")
+                    print("2. Full interactive companion")
+                    print("3. Back")
+                    mh_choice = input("Choose (1-3): ").strip()
+                    if mh_choice == '1':
+                        user_msg = input("Enter a short message (blank to cancel): ").strip()
+                        if not user_msg:
+                            continue
+                        try:
+                            reply = mental_health_ai.update_memory_with_gpt(user_msg)
+                        except Exception:
+                            reply = "Mental health support is temporarily unavailable."
+                        print(f"\nSupport: {reply}\n")
+                        try:
+                            storage.add_report(user_name, 'mental_support', f"user: {user_msg} | response: {reply}")
+                        except Exception:
+                            pass
+                    elif mh_choice == '2':
+                        try:
+                            mental_health_ai.main()
+                        except Exception as e:
+                            print("Mental health companion failed:", e)
+                    elif mh_choice == '3':
+                        break
+                    else:
+                        print("Invalid choice. Please enter 1, 2 or 3.")
 
             elif action == 'exit':
                 break
