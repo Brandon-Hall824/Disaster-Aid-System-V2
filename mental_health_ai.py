@@ -20,15 +20,25 @@ def ensure_dependencies():
 ensure_dependencies()
 
 # --- IMPORT AFTER INSTALLATION ---
-from openai import OpenAI
+import openai
 from dateutil import parser as date_parser
 
-# --- API CLIENT SETUP (PROMPT FOR API KEY) ---
+# --- DETECT OPENAI SDK VERSION ---
+try:
+    from openai import OpenAI
+    NEW_SDK = True
+except ImportError:
+    NEW_SDK = False
+
+# --- PROMPT FOR API KEY ---
 api_key = input("Please enter your OpenAI API key: ").strip()
 if not api_key:
     raise ValueError("⚠️ You must provide a valid API key to continue.")
 
-client = OpenAI(api_key=api_key)
+if NEW_SDK:
+    client = OpenAI(api_key=api_key)
+else:
+    openai.api_key = api_key
 
 # --- CRISIS MESSAGE ---
 CRISIS_RESPONSE = (
@@ -88,16 +98,13 @@ def update_disasters(user_input: str):
 def update_losses_with_time(user_input: str):
     loss_pattern = r"(my|our)\s+(dad|mom|father|mother|brother|sister|friend|pet)\s*(\w*)\s*(died|passed|lost|killed|gone)"
     cause_pattern = r"(?:due to|in a|from a|because of|in a)\s+([\w\s]+)"
-
     matches = re.findall(loss_pattern, user_input.lower())
     cause_match = re.search(cause_pattern, user_input.lower())
     cause = cause_match.group(1) if cause_match else "unknown cause"
-
     for match in matches:
         person_type = match[1]
         person_name = match[2].capitalize() if match[2] else person_type.capitalize()
         timestamp = extract_time_from_text(user_input) or datetime.now(timezone.utc).isoformat()
-
         exists = any(l.get("person") == person_name and l.get("timestamp") == timestamp for l in memory["losses"])
         if not exists:
             memory["losses"].append({
@@ -111,7 +118,6 @@ def check_for_time_question(user_input: str):
     if "what time" in text or "when" in text:
         person_match = re.search(r"(my|our)?\s*(mom|dad|father|mother|brother|sister|friend|pet|\w+)", text)
         person_query = person_match.group(2).capitalize() if person_match else None
-
         if memory["losses"]:
             if person_query:
                 for loss in reversed(memory["losses"]):
@@ -137,7 +143,6 @@ def check_for_time_question(user_input: str):
                 except Exception:
                     timestamp_str = timestamp
                 return f"Your loved one {person} died at {timestamp_str} due to {cause}."
-
         if memory["disasters"]:
             latest_disaster = memory["disasters"][-1]
             disaster = latest_disaster.get("type", "the disaster")
@@ -149,10 +154,35 @@ def check_for_time_question(user_input: str):
             except Exception:
                 timestamp_str = timestamp
             return f"The {disaster} happened at {timestamp_str}. Advice: {advice}"
-
         return "I’m not sure when that happened, but I can try to remember if you tell me."
     return None
 
+# --- VERSION-AGNOSTIC OPENAI CALL ---
+def get_chat_completion(system_prompt: str, user_input: str):
+    if NEW_SDK:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
+            max_tokens=400,
+            temperature=0.7
+        )
+        return resp.choices[0].message.content.strip()
+    else:
+        resp = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
+            max_tokens=400,
+            temperature=0.7
+        )
+        return resp.choices[0].message.content.strip()
+
+# --- UPDATE MEMORY USING GPT ---
 def update_memory_with_gpt(user_input: str) -> str:
     update_disasters(user_input)
     update_losses_with_time(user_input)
@@ -178,32 +208,18 @@ def update_memory_with_gpt(user_input: str) -> str:
     )
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_input}
-            ],
-            max_tokens=400,
-            temperature=0.7
-        )
-
-        gpt_text = response.choices[0].message.content.strip()
-
+        gpt_text = get_chat_completion(system_prompt, user_input)
         # Parse JSON safely
         start = gpt_text.find('{')
         end = gpt_text.rfind('}') + 1
         if start == -1 or end == -1:
             print("⚠️ GPT did not return valid JSON:\n", gpt_text)
             return "I'm here to listen. Can you tell me more about what's going on?"
-
         parsed = json.loads(gpt_text[start:end])
         updated_memory = parsed.get("memory", memory)
-        reply_text = parsed.get("response", "I'm here to listen. Can you tell me more?") 
+        reply_text = parsed.get("response", "I'm here to listen. Can you tell me more?")
         memory.update(updated_memory)
-
         return reply_text
-
     except Exception as e:
         print("⚠️ General Error:", e)
         return "I'm here to listen. Can you tell me more about what's going on?"
@@ -212,18 +228,15 @@ def update_memory_with_gpt(user_input: str) -> str:
 def main():
     print("💬 Natural Disaster Companion")
     print("Type 'quit' to exit.\n")
-
     while True:
         user_input = input("You: ").strip()
         if user_input.lower() in ["quit", "exit", "bye"]:
             print("Bot: Take care of yourself. You’re not alone.")
             break
-
         time_response = check_for_time_question(user_input)
         if time_response:
             print(f"Bot: {time_response}\n")
             continue
-
         response = update_memory_with_gpt(user_input)
         print(f"Bot: {response}\n")
 
