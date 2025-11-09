@@ -5,21 +5,13 @@ This project is designed to facilitate the management and dispatch of aid suppli
 
 ## Setup Instructions
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd aid-dispatch-project
-   ```
+1. Go to this link: https://platform.openai.com/docs/quickstart/create-and-export-an-api-key?utm_source=chatgpt.com
 
-2. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+2. Select create an API, and then follow the sign in / sign up process for OpenAI.
 
-3. Run the application:
-   ```
-   python main.py
-   ```
+3. Follow the process and copy the API Key given.
+
+4. Input this into the program if prompted.
 
 ## Usage
 
