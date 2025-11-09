@@ -4,7 +4,7 @@ def main():
     """Interactive entrypoint that uses the Storage, Truck and HelpStation APIs.
 
     - Government users can add supplies or check inventory.
-    - Non-government users can request aid; if near a station they get distance, otherwise a truck is dispatched.
+    - Non-government users can request aid and trucks will be dispatched as needed.
     """
     import json
     import sys
@@ -12,7 +12,9 @@ def main():
     from storage import Storage
     from trucks import Truck
     from help_stations import HelpStation
-    from typing import List, Dict, Tuple
+    from report_utils import geocode
+    from typing import List, Dict, Tuple, Optional
+    import re
 
     print("Welcome to the Aid Dispatch System")
 
@@ -43,14 +45,6 @@ def main():
     for i in range(1, 6):
         trucks.add_truck(f"Truck {i}")
 
-    # Default help station coordinates for new stations
-    default_coords = {
-        'North': (51.5074, -0.1278),
-        'South': (50.9097, -1.4044),
-        'East': (52.6369, 1.2989),
-        'West': (51.4816, -3.1791),
-        'Central': (52.4862, -1.8904)
-    }
 
     # Authentication flow: ask for gov password; blank or incorrect => non-gov
     GOV_PASSWORD = 'gov'
@@ -64,35 +58,34 @@ def main():
                     print("\nAid Centre Management")
                     print("1. Add new aid centre")
                     print("2. List aid centres")
-                    print("3. Back to main menu")
+                    print("3. Delete aid centre")
+                    print("4. Back to main menu")
                     
-                    choice = input("Enter choice (1-3): ").strip()
+                    choice = input("Enter choice (1-4): ").strip()
                     if choice == '1':
-                        name = input("Enter aid centre name (e.g., Edinburgh Centre): ").strip()
-                        location = input("Enter location (North/South/East/West/Central): ").strip().capitalize()
-                        
-                        if location in default_coords:
-                            coords = default_coords[location]
-                            help_stations.add_station(name, coords)
-                            print(f"Added aid centre: {name} ({location})")
+                        name = input("Enter aid centre name: ").strip()
+                        if help_stations.add_station(name):
+                            print(f"Added aid centre: {name}")
                         else:
-                            print("Invalid location. Please choose from North/South/East/West/Central.")
+                            print("Failed to add station - name empty or already exists")
                     
                     elif choice == '2':
-                        if help_stations.stations:
+                        all_stations = help_stations.list_stations()
+                        if all_stations:
                             print("\nRegistered Aid Centres:")
-                            for station_name, coords in help_stations.stations.items():
-                                # Find location based on coordinates
-                                location = "Unknown"
-                                for loc, coord in default_coords.items():
-                                    if coord == coords:
-                                        location = loc
-                                        break
-                                print(f" - {station_name} ({location})")
+                            for station in all_stations:
+                                print(f" - {station}")
                         else:
                             print("No aid centres registered.")
                     
                     elif choice == '3':
+                        name = input("Enter aid centre name to delete: ").strip()
+                        if help_stations.delete_station(name):
+                            print(f"Deleted aid centre: {name}")
+                        else:
+                            print("Station not found")
+                            
+                    elif choice == '4':
                         break
                     else:
                         print("Invalid choice. Please try again.")
@@ -145,7 +138,58 @@ def main():
                         else:
                             print("\nSaved disaster reports:")
                             for i, r in enumerate(reports, start=1):
-                                print(f"{i}. {r.get('timestamp')} - {r.get('name')} - {r.get('disaster_type')}: {r.get('details')}")
+                                # Show reporter, type, parsed details, resolved address and coordinates if available
+                                name = r.get('name', 'Unknown')
+                                dtype = r.get('disaster_type', 'Unknown')
+                                details_raw = r.get('details', '') or ''
+
+                                def _extract_location_from_details(details: str) -> Tuple[Optional[str], Optional[float], Optional[float]]:
+                                    if not details:
+                                        return None, None, None
+                                    addr = None
+                                    lat = None
+                                    lon = None
+                                    if "location_resolved:" in details:
+                                        try:
+                                            addr_part = details.split("location_resolved:", 1)[1]
+                                            addr = addr_part.split("|", 1)[0].strip()
+                                            if addr == "":
+                                                addr = None
+                                        except Exception:
+                                            addr = None
+                                    mlat = re.search(r"lat:\s*([\-\d\.]+)", details)
+                                    mlon = re.search(r"lon:\s*([\-\d\.]+)", details)
+                                    try:
+                                        if mlat:
+                                            lat = float(mlat.group(1))
+                                    except Exception:
+                                        lat = None
+                                    try:
+                                        if mlon:
+                                            lon = float(mlon.group(1))
+                                    except Exception:
+                                        lon = None
+                                    return addr, lat, lon
+
+                                def _extract_description_from_details(details: str) -> str:
+                                    if not details:
+                                        return ""
+                                    if "location_resolved:" in details:
+                                        return details.split("location_resolved:", 1)[0].rstrip(" |").strip()
+                                    return details.strip()
+
+                                description = _extract_description_from_details(details_raw)
+                                addr, lat, lon = _extract_location_from_details(details_raw)
+                                addr_display = addr or 'Address unknown'
+                                lat_display = lat if lat is not None else 'N/A'
+                                lon_display = lon if lon is not None else 'N/A'
+
+                                print(f"{i}. Reporter: {name}")
+                                print(f"   Type   : {dtype}")
+                                print(f"   Details: {description}")
+                                print(f"   Address: {addr_display}")
+                                print(f"   Lat/Lon: {lat_display} / {lon_display}")
+                                print('-' * 60)
                     
                     elif choice == '2':
                         reports = storage.get_reports()
@@ -218,8 +262,23 @@ def main():
         if report_choice == 'y':
             disaster_type = input("Type of natural disaster (e.g., flood, earthquake): ").strip()
             details = input("Please provide brief details about the situation: ").strip()
-            storage.add_report(user_name, disaster_type, details)
-            print("Thank you — your report has been saved and will be visible to government users.")
+
+            # Ask for address components and attempt geocoding (same behaviour as data analysis report)
+            print("\nPlease provide the location for this report (leave blank if unknown).")
+            number = input("Address (number) : ").strip()
+            street = input("Street name      : ").strip()
+            city = input("City / Town      : ").strip()
+            country = input("Country          : ").strip()
+
+            coords = geocode(number or None, street, city, country)
+            if coords is None:
+                storage.add_report(user_name, disaster_type, details)
+                print("Thank you — your report has been saved and will be visible to government users.")
+            else:
+                lat, lon, display = coords
+                details_with_location = f"{details} | location_resolved: {display} | lat:{lat} lon:{lon}"
+                storage.add_report(user_name, disaster_type, details_with_location)
+                print("Thank you — your report has been saved (address resolved) and will be visible to government users.")
 
         # For non-government users: do not ask for latitude/longitude.
         # Always attempt to dispatch a truck when supplies are available.
@@ -309,12 +368,11 @@ def main():
                     print("Invalid input. Please try again.")
 
             elif action == 'stations':
-                if help_stations.stations:
-                    print("Known help stations (latitude, longitude):")
-                    for sid, loc in help_stations.stations.items():
-                        # loc is a (lat, lon) tuple
-                        lat, lon = loc
-                        print(f" - {sid}: latitude={lat}, longitude={lon}")
+                all_stations = help_stations.list_stations()
+                if all_stations:
+                    print("\nKnown help stations:")
+                    for station in all_stations:
+                        print(f" - {station}")
                 else:
                     print("No help stations registered.")
 

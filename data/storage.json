@@ -5,12 +5,6 @@
   },
   "reports": [
     {
-      "name": "Brandon",
-      "disaster_type": "flood",
-      "details": "Lots of water",
-      "timestamp": "2025-11-09T16:59:16.695855Z"
-    },
-    {
       "name": "Jamie",
       "disaster_type": "tsunami",
       "details": "there is a tsunami coming to georgetown ontario",
@@ -21,6 +15,18 @@
       "disaster_type": "earthquake",
       "details": "ground started shaking screaming everywhere",
       "timestamp": "2025-11-09T17:14:35.612076Z"
+    },
+    {
+      "name": "Brandon",
+      "disaster_type": "Flood",
+      "details": "SOOOO MUCH WATER",
+      "timestamp": "2025-11-09T19:42:57.963228Z"
+    },
+    {
+      "name": "Brandon",
+      "disaster_type": "huricane",
+      "details": "lots of wind! | location_resolved: 34, Bristow Creek Drive, Elmira, Woolwich, Region of Waterloo, Ontario, N3B 0B6, Canada | lat:43.5997826 lon:-80.5706433",
+      "timestamp": "2025-11-09T19:46:46.007142Z"
     }
   ],
   "requesters": [
