@@ -1,13 +1,31 @@
+import os
+import sys
 import json
 import re
 from datetime import datetime, timezone
-from dateutil import parser as date_parser  # pip install python-dateutil
+
+# --- AUTO-INSTALL DEPENDENCIES ---
+def ensure_dependencies():
+    """Automatically installs required dependencies if missing."""
+    import importlib
+    required_packages = ["openai", "python-dateutil"]
+    for package in required_packages:
+        try:
+            importlib.import_module(package)
+        except ImportError:
+            print(f"📦 Installing missing package: {package}")
+            import subprocess
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+ensure_dependencies()
+
+# --- IMPORT AFTER INSTALLATION ---
 from openai import OpenAI
-import os
+from dateutil import parser as date_parser
 
 # --- HARDCODED API KEY ---
-os.environ["OPENAI_API_KEY"] = "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"  # <-- Replace with your full key
-client = OpenAI()  # Initialize OpenAI client
+os.environ["OPENAI_API_KEY"] = "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"
+client = OpenAI(api_key="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")
 
 # Crisis message
 CRISIS_RESPONSE = (
