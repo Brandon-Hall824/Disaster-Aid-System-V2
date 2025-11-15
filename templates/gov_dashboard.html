@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <h2>🚨 Aid Dispatch - Government</h2>
+            <div class="user-info">
+                <span>Welcome, {{ user_name }}</span>
+                <a href="/logout" class="btn btn-small">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="inventory">Inventory</button>
+            <button class="tab-button" data-tab="reports">Reports</button>
+            <button class="tab-button" data-tab="stations">Aid Centres</button>
+        </div>
+
+        <!-- Inventory Management Tab -->
+        <div id="inventory" class="tab-content active">
+            <h3>📦 Manage Inventory</h3>
+            
+            <div class="section">
+                <h4>Add Supplies</h4>
+                <form id="addSupplyForm" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="supplyType">Supply Type:</label>
+                            <select id="supplyType" required>
+                                <option value="">-- Select --</option>
+                                <option value="food">Food (lbs)</option>
+                                <option value="medical">Medical Supplies</option>
+                                <option value="blankets">Blankets (qty)</option>
+                                <option value="water">Water (lbs)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="supplyQty">Quantity:</label>
+                            <input type="number" id="supplyQty" min="1" placeholder="0" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Supply</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section">
+                <h4>Current Inventory</h4>
+                <div id="inventoryList" class="inventory-list"></div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <h3>📋 Disaster Reports</h3>
+            <div id="reportsList" class="reports-list"></div>
+        </div>
+
+        <!-- Aid Centres Management Tab -->
+        <div id="stations" class="tab-content">
+            <h3>🏢 Aid Centres Management</h3>
+            
+            <div class="section">
+                <h4>Add Aid Centre</h4>
+                <form id="addStationForm" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stationName">Centre Name:</label>
+                            <input type="text" id="stationName" placeholder="e.g., Red Cross Station 1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Centre</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section">
+                <h4>Registered Centres</h4>
+                <div id="stationsList" class="stations-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='gov.js') }}"></script>
+</body>
+</html>

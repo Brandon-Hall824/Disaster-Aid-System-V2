@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Government Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <h2>🚨 Aid Dispatch - Requester</h2>
+            <div class="user-info">
+                <span>Welcome, {{ user_name }}</span>
+                <a href="/logout" class="btn btn-small">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="report">File Report</button>
+            <button class="tab-button" data-tab="request">Request Aid</button>
+            <button class="tab-button" data-tab="stations">Help Stations</button>
+            <button class="tab-button" data-tab="mental">Mental Health Support</button>
+        </div>
+
+        <!-- File Disaster Report Tab -->
+        <div id="report" class="tab-content active">
+            <h3>📋 File a Disaster Report</h3>
+            <form id="reportForm" class="form">
+                <div class="form-group">
+                    <label for="disasterType">Type of Disaster:</label>
+                    <select id="disasterType" required>
+                        <option value="">-- Select --</option>
+                        <option value="flood">Flood</option>
+                        <option value="earthquake">Earthquake</option>
+                        <option value="fire">Fire</option>
+                        <option value="tornado">Tornado</option>
+                        <option value="hurricane">Hurricane</option>
+                        <option value="storm">Storm</option>
+                        <option value="tsunami">Tsunami</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="details">Details:</label>
+                    <textarea id="details" placeholder="Describe the situation..." rows="4"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="address">Street Address:</label>
+                        <input type="text" id="address" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City/Town:</label>
+                        <input type="text" id="city" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="country">Country:</label>
+                        <input type="text" id="country" placeholder="Optional">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Report</button>
+            </form>
+        </div>
+
+        <!-- Request Aid Tab -->
+        <div id="request" class="tab-content">
+            <h3>📦 Request Aid</h3>
+            <div id="suppliesList" class="supplies-list"></div>
+        </div>
+
+        <!-- Help Stations Tab -->
+        <div id="stations" class="tab-content">
+            <h3>🏢 Help Stations</h3>
+            <div id="stationsList" class="stations-list"></div>
+        </div>
+
+        <!-- Mental Health Support Tab -->
+        <div id="mental" class="tab-content">
+            <h3>💚 Mental Health Support</h3>
+            <div id="mentalContent"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='nongov.js') }}"></script>
+</body>
+</html>

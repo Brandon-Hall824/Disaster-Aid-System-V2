@@ -1,7 +1,8 @@
 {
   "supplies": {
     "Blankets": 7,
-    "food": 1766
+    "food": 1566,
+    "medical": 1
   },
   "reports": [
     {
@@ -33,6 +34,18 @@
       "disaster_type": "mental_support",
       "details": "user: help please | response: I'm here for you. It sounds like you might be going through a tough time. Would you like to talk about what's on your mind?",
       "timestamp": "2025-11-09T23:08:10.154387Z"
+    },
+    {
+      "name": "Nigel",
+      "disaster_type": "rapture",
+      "details": "everyone else is gone!",
+      "timestamp": "2025-11-15T03:07:07.886692Z"
+    },
+    {
+      "name": "Nigel",
+      "disaster_type": "mental_support",
+      "details": "user: I'm scared, everyone has gone to heaven and I'm left behind | response: I'm really sorry to hear that you're feeling this way. It sounds incredibly lonely and frightening to think about being left behind. It's okay to feel scared when you're missing those you love. Remember, it's important to hold onto the memories and the love you shared with them. Have you considered talking about your feelings or finding ways to honor their memory? Sometimes sharing stories or writing about your experiences can be a comforting way to process those emotions.",
+      "timestamp": "2025-11-15T03:09:18.879637Z"
     }
   ],
   "requesters": [
@@ -45,6 +58,8 @@
     "b",
     "B",
     "f",
-    "d"
+    "d",
+    "Ben",
+    "Nigel"
   ]
 }
