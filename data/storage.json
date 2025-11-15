@@ -4,50 +4,7 @@
     "food": 1566,
     "medical": 1
   },
-  "reports": [
-    {
-      "name": "Jamie",
-      "disaster_type": "tsunami",
-      "details": "there is a tsunami coming to georgetown ontario",
-      "timestamp": "2025-11-09T17:12:10.883954Z"
-    },
-    {
-      "name": "jack",
-      "disaster_type": "earthquake",
-      "details": "ground started shaking screaming everywhere",
-      "timestamp": "2025-11-09T17:14:35.612076Z"
-    },
-    {
-      "name": "Brandon",
-      "disaster_type": "Flood",
-      "details": "SOOOO MUCH WATER",
-      "timestamp": "2025-11-09T19:42:57.963228Z"
-    },
-    {
-      "name": "Brandon",
-      "disaster_type": "huricane",
-      "details": "lots of wind! | location_resolved: 34, Bristow Creek Drive, Elmira, Woolwich, Region of Waterloo, Ontario, N3B 0B6, Canada | lat:43.5997826 lon:-80.5706433",
-      "timestamp": "2025-11-09T19:46:46.007142Z"
-    },
-    {
-      "name": "Br",
-      "disaster_type": "mental_support",
-      "details": "user: help please | response: I'm here for you. It sounds like you might be going through a tough time. Would you like to talk about what's on your mind?",
-      "timestamp": "2025-11-09T23:08:10.154387Z"
-    },
-    {
-      "name": "Nigel",
-      "disaster_type": "rapture",
-      "details": "everyone else is gone!",
-      "timestamp": "2025-11-15T03:07:07.886692Z"
-    },
-    {
-      "name": "Nigel",
-      "disaster_type": "mental_support",
-      "details": "user: I'm scared, everyone has gone to heaven and I'm left behind | response: I'm really sorry to hear that you're feeling this way. It sounds incredibly lonely and frightening to think about being left behind. It's okay to feel scared when you're missing those you love. Remember, it's important to hold onto the memories and the love you shared with them. Have you considered talking about your feelings or finding ways to honor their memory? Sometimes sharing stories or writing about your experiences can be a comforting way to process those emotions.",
-      "timestamp": "2025-11-15T03:09:18.879637Z"
-    }
-  ],
+  "reports": [],
   "requesters": [
     "jack'",
     "Brandon",
