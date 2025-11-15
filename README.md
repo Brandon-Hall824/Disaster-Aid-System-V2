@@ -13,6 +13,10 @@ This project is designed to facilitate the management and dispatch of aid suppli
 
 4. Input this into the program if prompted.
 
+5. Run the app.py file.
+
+6. put http://localhost:5000 into your web browser to run the code.
+
 ## Usage
 
 - Government users can input necessary supplies and manage the inventory.
