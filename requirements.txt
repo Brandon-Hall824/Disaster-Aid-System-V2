@@ -2,3 +2,6 @@ Flask
 requests
 pytest
 jsonschema
+openai
+python-dotenv
+python-dateutil

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aid Dispatch System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container login-container">
+        <div class="login-box">
+            <h1>🚨 Aid Dispatch System</h1>
+            <p class="subtitle">Disaster Relief & Support</p>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="name">Your Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password (leave blank for regular user):</label>
+                    <input type="password" id="password" name="password" placeholder="Enter 'gov' for government access">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            
+            <p class="login-hint">
+                <strong>Regular users:</strong> Leave password blank to request aid and file reports.<br>
+                <strong>Government users:</strong> Enter "gov" to manage supplies and aid centres.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, password})
+            });
+            
+            if (response.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                alert('Login failed. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
